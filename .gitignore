@@ -1,0 +1,6 @@
+.pio/
+.vscode/
+**/include/secrets.h
+*.bin
+data/raw/
+.DS_Store

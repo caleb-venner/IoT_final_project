@@ -16,11 +16,15 @@ struct Telemetry {
   float       water_ml_total;
 };
 
-// Connects Wi-Fi (blocking, with timeout) then MQTT. Call in setup().
+// Connects Wi-Fi (blocking, with timeout) and initialises MQTT if g_cfg.mqtt_enabled is true.
 void mqtt_init();
-// Keeps Wi-Fi and MQTT alive with throttled reconnects. Call every loop.
-void mqtt_loop();
+// Re-applies runtime MQTT settings from g_cfg (host, port, credentials, enabled state).
+void mqtt_apply_config();
+// Keeps MQTT alive with throttled reconnects (no-op if g_cfg.mqtt_enabled is false).
+// Pass allow_reconnect = false to skip the blocking connect attempt (e.g. while the pump runs).
+void mqtt_loop(bool allow_reconnect);
 bool mqtt_connected();
+int  mqtt_last_rc();
 
 void mqtt_publish_telemetry(const Telemetry& t);
 void mqtt_publish_event(const char* reason, uint32_t duration_ms, float ml);

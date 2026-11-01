@@ -1,9 +1,10 @@
 // config.h
-// Purpose: Compile-time configuration for the watering node (pins, calibration, thresholds).
+// Purpose: Compile-time defaults and runtime NVS-backed configuration for the watering node.
 // OWNER:   Caleb
 // Node:    watering node (ESP32 DevKitC)
 
 #pragma once
+#include <Arduino.h>
 #include <stdint.h>
 
 #if __has_include("secrets.h")
@@ -13,29 +14,74 @@
 #include "secrets.example.h"
 #endif
 
+// ---------- mDNS Hostname ----------
+// Accessible at http://basil-water.local/
+#define MDNS_HOSTNAME     "basil-water"
+
 // ---------- Pins ----------
-#define MOISTURE_PIN      34    // TODO(Caleb): verify. Must be ADC1; ADC2 can't be used with Wi-Fi on.
-#define PUMP_PIN          25    // TODO(Caleb): verify
-#define PUMP_ACTIVE_HIGH  true  // TODO(Caleb): verify against relay/MOSFET driver
+#define MOISTURE_PIN      34    // ADC1_CH6 (input-only; functions concurrently with Wi-Fi)
+#define MOISTURE_PWR_PIN  26    // Switched output pin: powered briefly (15 ms) during reads to prevent electrolysis
+#define PUMP_PIN          25    // Connected to ULN2003A inputs (pins 1, 2, 3, 4)
+#define PUMP_ACTIVE_HIGH  true  // ULN2003A is active-HIGH (HIGH turns pump on)
 
-// ---------- Moisture calibration (capacitive: drier = higher raw) ----------
-#define MOISTURE_RAW_DRY  3000  // TODO(Caleb): verify, raw reading in air / bone-dry soil
-#define MOISTURE_RAW_WET  1300  // TODO(Caleb): verify, raw reading in water / saturated soil
+// ---------- Default Moisture Calibration ----------
+// Resistive water level module: dry air = low raw (0-500), submerged/wet = high raw (1500-3500).
+#define MOISTURE_RAW_DRY  200   // Default raw reading in dry soil / air
+#define MOISTURE_RAW_WET  2800  // Default raw reading in saturated soil / water
 #define MOISTURE_SAMPLES  16    // ADC samples averaged per read
-#define MOISTURE_FILTER_N 8     // moving-average window (reads)
+#define MOISTURE_FILTER_N 8     // Moving-average window (reads)
 
-// ---------- Watering thresholds ----------
-#define MOISTURE_LOW_PCT  30.0f    // TODO(Caleb): verify, below = dry
-#define MOISTURE_HIGH_PCT 55.0f    // TODO(Caleb): verify, above = wet, never water
-#define WILT_CONF_MIN     0.7f     // TODO(Caleb): verify
-#define HEALTH_MAX_AGE_MS 300000UL // TODO(Caleb): verify, older camera data is ignored
+// ---------- Default Watering Thresholds ----------
+#define MOISTURE_LOW_PCT  30.0f    // Below = dry, trigger watering
+#define MOISTURE_HIGH_PCT 55.0f    // Above = wet, never water
+#define WILT_CONF_MIN     0.7f     // Minimum ML confidence to act on wilt
+#define HEALTH_MAX_AGE_MS 300000UL // Ignore camera health messages older than 5 minutes
 
-// ---------- Pump ----------
-#define PUMP_MAX_RUN_MS   5000UL   // TODO(Caleb): verify, hard cap per cycle
-#define PUMP_COOLDOWN_MS  300000UL // TODO(Caleb): verify, soak time between cycles
-#define WATER_DOSE_MS     4000UL   // TODO(Caleb): verify, run time per watering
-#define PUMP_ML_PER_SEC   6.25f    // TODO(Caleb): verify, placeholder until calibrated
+// ---------- Default Pump Parameters ----------
+#define PUMP_MAX_RUN_MS        10000UL  // Max run duration for automatic watering cycles
+#define PUMP_MANUAL_MAX_RUN_MS 60000UL  // Max safety cap for manual WebUI runs (60 s)
+#define PUMP_COOLDOWN_MS       300000UL // Default soak time between auto-watering cycles (300 s)
+#define WATER_DOSE_MS          4000UL   // Default run time per auto-watering cycle (25 mL @ 6.25 mL/s)
+#define PUMP_ML_PER_SEC        6.25f    // Default flow rate (mL/s)
 
-// ---------- Timing ----------
-#define CONTROL_INTERVAL_MS   1000UL
-#define TELEMETRY_INTERVAL_MS 10000UL // TODO(Caleb): verify
+// ---------- Default Timing ----------
+#define CONTROL_INTERVAL_MS    30000UL  // Default auto-sense & control interval (30 s)
+#define TELEMETRY_INTERVAL_MS  10000UL  // Default MQTT telemetry interval (10 s)
+
+// ---------- Runtime Configuration (stored in ESP32 NVS Preferences) ----------
+struct WateringConfig {
+  // Mode toggles
+  bool     auto_water_enabled;
+  bool     mqtt_enabled;
+
+  // Sensor calibration
+  int      raw_dry;
+  int      raw_wet;
+
+  // Pump calibration & limits
+  float    ml_per_sec;
+  float    water_dose_ml;
+  uint32_t pump_max_run_ms;
+  uint32_t pump_cooldown_s;
+
+  // Control thresholds & timing
+  float    moisture_low_pct;
+  float    moisture_high_pct;
+  float    wilt_conf_min;
+  uint32_t sense_interval_s;
+  uint32_t telemetry_interval_s;
+
+  // MQTT settings
+  char     mqtt_host[64];
+  uint16_t mqtt_port;
+  char     mqtt_user[48];
+  char     mqtt_pass[64];
+  char     mqtt_client_id[32];
+};
+
+extern WateringConfig g_cfg;
+
+void config_load();            // defaults, then NVS overrides, then sanitise
+void config_save();            // persists every field of g_cfg to NVS
+void config_reset_defaults();  // resets g_cfg to compile-time defaults (does not save)
+void config_sanitise();        // clamps g_cfg into safe ranges (call after any external edit)

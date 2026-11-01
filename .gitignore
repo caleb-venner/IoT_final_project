@@ -4,3 +4,4 @@
 *.bin
 data/raw/
 .DS_Store
+sampleset*

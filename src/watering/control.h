@@ -19,9 +19,13 @@ struct ControlInputs {
 struct ControlDecision {
   bool        water;
   uint32_t    duration_ms;
-  const char* reason;        // published in the MQTT event
+  const char* reason;        // published in the MQTT event / displayed in WebUI
 };
 
 void control_init();
 // Assumes the caller runs the pump whenever water == true (starts the cooldown).
 ControlDecision control_decide(const ControlInputs& in);
+
+// Cooldown inspection and manual reset for WebUI bench testing
+uint32_t control_cooldown_remaining_s();
+void control_reset_cooldown();

@@ -103,9 +103,9 @@ typedef struct __attribute__((packed)) {
 
 | Topic | Payload (JSON) | When |
 |---|---|---|
-| `farm/basil1/telemetry` | `{"moisture_pct":41.5,"moisture_raw":2310,"pump":0,"health_state":"healthy","health_conf":0.91,"health_age_s":12,"water_ml_total":180}` | every 10 s |
-| `farm/basil1/events` | `{"event":"pump_run","reason":"dry+wilted","duration_ms":4000,"ml":25}` | on each watering |
-| `farm/basil1/status` | `online` / `offline` (retained, last will) | on connect/disconnect |
+| `farm/basil_aida_caleb/telemetry` | `{"moisture_pct":41.5,"moisture_raw":2310,"pump":0,"health_state":"healthy","health_conf":0.91,"health_age_s":12,"water_ml_total":180}` | every 10 s |
+| `farm/basil_aida_caleb/events` | `{"event":"pump_run","reason":"dry+wilted","duration_ms":4000,"ml":25}` | on each watering |
+| `farm/basil_aida_caleb/status` | `online` / `offline` (retained, last will) | on connect/disconnect |
 
 ## Watering logic (summary)
 

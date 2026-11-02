@@ -1,0 +1,20 @@
+# Grafana datasource provisioning: InfluxDB v2 (Flux).
+# Grafana substitutes ${INFLUX_TOKEN}/${INFLUX_ORG}/${INFLUX_BUCKET} from its
+# environment (set in docker-compose.yml from .env).
+apiVersion: 1
+
+datasources:
+  - name: InfluxDB
+    uid: influxdb-basil
+    type: influxdb
+    access: proxy
+    url: http://influxdb:8086
+    isDefault: true
+    jsonData:
+      version: Flux
+      organization: ${INFLUX_ORG}
+      defaultBucket: ${INFLUX_BUCKET}
+      tlsSkipVerify: true
+    secureJsonData:
+      token: ${INFLUX_TOKEN}
+    editable: true

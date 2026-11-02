@@ -1,0 +1,14 @@
+# Grafana dashboard provisioning: load JSON dashboards from disk on startup.
+apiVersion: 1
+
+providers:
+  - name: basil-dashboards
+    orgId: 1
+    folder: Smart Irrigation
+    type: file
+    disableDeletion: false
+    editable: true
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards
+      foldersFromFilesStructure: false

@@ -27,6 +27,6 @@ typedef struct __attribute__((packed)) {
 static_assert(sizeof(PlantHealthMsg) <= 250, "ESP-NOW payload limit");
 
 // ---------- MQTT topics (proposed; OWNER of design: Aida) ----------
-#define MQTT_TOPIC_TELEMETRY "farm/basil1/telemetry"
-#define MQTT_TOPIC_EVENTS    "farm/basil1/events"
-#define MQTT_TOPIC_STATUS    "farm/basil1/status"
+#define MQTT_TOPIC_TELEMETRY "farm/basil_aida_caleb/telemetry"
+#define MQTT_TOPIC_EVENTS    "farm/basil_aida_caleb/events"
+#define MQTT_TOPIC_STATUS    "farm/basil_aida_caleb/status"

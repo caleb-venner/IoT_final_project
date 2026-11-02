@@ -18,15 +18,21 @@ flowchart TB
 
 ## Sequence
 
-1. **Camera capture**: camera node grabs a frame (`camera_capture()`) every `INFERENCE_INTERVAL_MS` (60 s), on a FreeRTOS task pinned to core 1.
-2. **Inference**: `inference_run()` classifies the frame as healthy / wilted, with a confidence.
+1. **Camera capture**: camera node grabs a `96x96` RGB565 frame (`camera_capture()`) every `INFERENCE_INTERVAL_MS` (60 s), on a FreeRTOS task pinned to core 1, silencing XCLK between captures.
+2. **Inference**: `inference_run()` downsamples the frame to a `32x32` RGB planar float tensor and runs `TinyBasilCNN` (`src/camera/model_weights.h`) to classify the plant as `healthy` or `wilted` with confidence.
 3. **ESP-NOW**: `espnow_tx_send()` sends a `PlantHealthMsg` on the router's channel (found by SSID scan).
-4. **Control decision**: the watering node stores the latest message (`espnow_rx_latest()`), reads soil moisture, and `control_decide()` applies the dry / borderline+wilted / wet / cooldown / stale-camera rules.
-5. **Pump**: `pump_run_ms()` runs the peristaltic pump non-blocking, capped at `PUMP_MAX_RUN_MS`, and tracks delivered mL.
-6. **MQTT**: telemetry every 10 s to `farm/basil1/telemetry`, an event per watering to `farm/basil1/events`, and online/offline (last will) on `farm/basil1/status`.
+4. **Control decision**: the watering node stores the latest message (`espnow_rx_latest()`), reads pulsed-power soil moisture, and `control_decide()` applies the dry / borderline+wilted / wet / cooldown / stale-camera rules using runtime thresholds stored in NVS (configurable via `http://basil-water.local/`).
+5. **Pump**: `pump_run_ms()` / `pump_run_ml()` drives the 12V peristaltic pump via a 3-channel parallel ULN2003A non-blocking timer, capped at `max_run_ms`, and tracks delivered mL.
+6. **MQTT**: telemetry every `telemetry_s` (default 10 s) to `farm/basil1/telemetry`, an event per watering to `farm/basil1/events`, and online/offline (last will) on `farm/basil1/status`.
 7. **Telegraf**: subscribes to the topics and parses the JSON.
-8. **InfluxDB**: stores the time series.
-9. **Grafana**: dashboards.
+8. **InfluxDB**: stores the time series (`basil_telemetry`, `basil_events`, `basil_status`).
+9. **Grafana**: renders the live dashboard.
+
+## Related Documentation
+
+- [Watering Node Wiring & Hardware Specification](watering_node_wiring.md)
+- [ML Model Training & Deployment Guide](model_training_guide.md)
+- [Cloud Infrastructure & Local Docker Stack Guide](../cloud/README.md)
 
 ## Interfaces
 

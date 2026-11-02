@@ -8,6 +8,7 @@
 #include <WiFiClientSecure.h>
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
+#include <lwip/dns.h>
 #include "mqtt_pub.h"
 #include "config.h"
 #include "plant_msgs.h"
@@ -29,15 +30,15 @@ static bool mqtt_connect() {
   bool ok = false;
   if (strlen(g_cfg.mqtt_user) > 0) {
     ok = s_mqtt.connect(g_cfg.mqtt_client_id, g_cfg.mqtt_user, g_cfg.mqtt_pass,
-                        MQTT_TOPIC_STATUS, 1, true, "offline");
+                        g_cfg.mqtt_topic_status, 1, true, "offline");
   } else {
     ok = s_mqtt.connect(g_cfg.mqtt_client_id,
-                        MQTT_TOPIC_STATUS, 1, true, "offline");
+                        g_cfg.mqtt_topic_status, 1, true, "offline");
   }
 
   if (ok) {
     s_last_rc = 0;
-    s_mqtt.publish(MQTT_TOPIC_STATUS, "online", true);
+    s_mqtt.publish(g_cfg.mqtt_topic_status, "online", true);
     Serial.println("ok");
   } else {
     s_last_rc = s_mqtt.state();
@@ -48,7 +49,7 @@ static bool mqtt_connect() {
 
 void mqtt_apply_config() {
   if (s_mqtt.connected()) {
-    s_mqtt.publish(MQTT_TOPIC_STATUS, "offline", true);
+    s_mqtt.publish(g_cfg.mqtt_topic_status, "offline", true);
     s_mqtt.disconnect();
   }
 
@@ -81,6 +82,12 @@ void mqtt_init() {
     Serial.print('.');
   }
   if (WiFi.status() == WL_CONNECTED) {
+    // Override router DNS with 8.8.8.8 / 1.1.1.1 in case local DNS sinkholes public MQTT brokers
+    ip_addr_t dns1, dns2;
+    IP_ADDR4(&dns1, 8, 8, 8, 8);
+    IP_ADDR4(&dns2, 1, 1, 1, 1);
+    dns_setserver(0, &dns1);
+    dns_setserver(1, &dns2);
     Serial.printf(" ok, IP %s, channel %d\n", WiFi.localIP().toString().c_str(), WiFi.channel());
   } else {
     Serial.println(" timed out, will keep retrying in background");
@@ -126,8 +133,8 @@ void mqtt_publish_telemetry(const Telemetry& t) {
 
   char buf[384];
   size_t n = serializeJson(doc, buf, sizeof(buf));
-  s_mqtt.publish(MQTT_TOPIC_TELEMETRY, reinterpret_cast<const uint8_t*>(buf), n);
-  Serial.printf("[mqtt] %s %s\n", MQTT_TOPIC_TELEMETRY, buf);
+  s_mqtt.publish(g_cfg.mqtt_topic_telemetry, reinterpret_cast<const uint8_t*>(buf), n);
+  Serial.printf("[mqtt] %s %s\n", g_cfg.mqtt_topic_telemetry, buf);
 }
 
 void mqtt_publish_event(const char* reason, uint32_t duration_ms, float ml) {
@@ -140,6 +147,6 @@ void mqtt_publish_event(const char* reason, uint32_t duration_ms, float ml) {
 
   char buf[256];
   size_t n = serializeJson(doc, buf, sizeof(buf));
-  s_mqtt.publish(MQTT_TOPIC_EVENTS, reinterpret_cast<const uint8_t*>(buf), n);
-  Serial.printf("[mqtt] %s %s\n", MQTT_TOPIC_EVENTS, buf);
+  s_mqtt.publish(g_cfg.mqtt_topic_events, reinterpret_cast<const uint8_t*>(buf), n);
+  Serial.printf("[mqtt] %s %s\n", g_cfg.mqtt_topic_events, buf);
 }

@@ -1,6 +1,6 @@
 // config.h
 // Purpose: Compile-time configuration for the camera node (pins, timing, ESP-NOW).
-// OWNER:   Aida (camera/inference settings), Caleb (ESP-NOW settings)
+// OWNER:   Caleb
 // Node:    camera node (Freenove ESP32-WROVER CAM)
 
 #pragma once
@@ -16,6 +16,7 @@
 
 // ---------- Timing ----------
 #define INFERENCE_INTERVAL_MS 60000UL
+#define WARMUP_FRAMES         2
 
 // ---------- ESP-NOW (OWNER: Caleb) ----------
 // Used if the SSID scan fails. Must match the router the watering node is on.
@@ -24,7 +25,6 @@
 #define ESPNOW_PEER_MAC {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}
 
 // ---------- Camera pins (CAMERA_MODEL_WROVER_KIT map) ----------
-// TODO(Aida): verify against Freenove's ESP32-WROVER CAM tutorial before relying on these.
 #define CAM_PIN_PWDN  -1
 #define CAM_PIN_RESET -1
 #define CAM_PIN_XCLK  21

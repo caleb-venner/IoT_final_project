@@ -77,6 +77,9 @@ struct WateringConfig {
   char     mqtt_user[48];
   char     mqtt_pass[64];
   char     mqtt_client_id[32];
+  char     mqtt_topic_telemetry[64];
+  char     mqtt_topic_events[64];
+  char     mqtt_topic_status[64];
 };
 
 extern WateringConfig g_cfg;

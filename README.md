@@ -36,8 +36,8 @@ flowchart TB
 
 | Student | Primary technical responsibility | Shared responsibility |
 |---|---|---|
-| **Caleb Venner** | Watering node: moisture sensing and calibration, pump driver, watering control logic. ESP-NOW link between nodes (sender on camera node, receiver on watering node). MQTT publishing from the watering node. Hardware assembly. Edge ML: training data collection and labelling, model training (Edge Impulse), On-device inference code for the camera node. | Integration, testing |
-| **Aida** | Cloud chain: MQTT broker setup, topic and payload design, MQTT → Telegraf → InfluxDB. Data Presentation: Grafana dashboard. | Integration, testing |
+| **Caleb Venner** | Hardware stack & assembly. Watering node: pulsed-power moisture sensing, calibration, ULN2003A pump driver, watering control logic, and embedded WebUI/NVS configuration. Camera node & Edge ML: training data capture (`src/capture/`), dataset preparation and CNN training (`tools/train_model.py`), on-device `TinyBasilCNN` inference (`src/camera/`). ESP-NOW link between nodes (`espnow_tx`, `espnow_rx`). MQTT client publishing (`mqtt_pub`). | Integration, testing |
+| **Aida** | Cloud chain: MQTT broker setup, topic and payload design, MQTT → Telegraf → InfluxDB ingestion pipeline, simulator (`cloud/tools/sim_publish.py`). Data Presentation: Grafana dashboard design and provisioning (`cloud/grafana/`). | Integration, testing |
 
 ### Rubric mapping (TaskG1)
 
@@ -47,7 +47,7 @@ flowchart TB
 | Local communication (ESP-NOW) | Caleb | `include/plant_msgs.h`, `src/camera/espnow_tx.*`, `src/watering/espnow_rx.*` |
 | Global communication and cloud data chain | Aida (MQTT publish code: Caleb) | `cloud/`, `src/watering/mqtt_pub.*` |
 | Data presentation (Grafana) | Aida | `cloud/grafana/` |
-| Advanced processing (edge ML) | Aida | `src/camera/inference.*`, `src/capture/` |
+| Advanced processing (edge ML) | Caleb | `src/camera/inference.*`, `src/camera/model_weights.h`, `src/capture/`, `tools/train_model.py` |
 
 ## Repository layout
 
@@ -55,26 +55,34 @@ One PlatformIO project at the root, with one env per firmware.
 
 ```
 .
-├── platformio.ini            # envs: camera, camera-mock, capture, watering, watering-mock
+├── platformio.ini            # envs: camera, capture, watering
 ├── include/
 │   ├── plant_msgs.h          # ESP-NOW message struct + MQTT topic names (single source of truth)
 │   └── secrets.example.h     # copy to include/secrets.h (git-ignored)
-├── lib/                      # Edge Impulse Arduino library export (Aida)
 ├── src/
-│   ├── camera/               # camera node, Freenove ESP32-WROVER CAM (Aida; espnow_tx: Caleb)
-│   ├── capture/              # data collection: timed photos to SD card (Aida)
-│   └── watering/             # watering node, ESP32 DevKitC (Caleb)
+│   ├── camera/               # camera node, Freenove ESP32-WROVER CAM (TinyBasilCNN + ESP-NOW TX)
+│   ├── capture/              # data collection: timed photos to SD card + HTTP sync server
+│   └── watering/             # watering node, ESP32 DevKitC (WebUI, NVS config, pump, moisture, MQTT)
+├── tools/
+│   ├── sync_photos.py        # downloads captured dataset images from the camera node over HTTP
+│   └── train_model.py        # prepares dataset, trains TinyBasilCNN, exports src/camera/model_weights.h
 ├── cloud/
-│   ├── telegraf/telegraf.conf
-│   └── grafana/              # exported dashboard JSON
+│   ├── README.md             # cloud architecture & Docker stack guide
+│   ├── docker-compose.yml    # local cloud stack (Telegraf + InfluxDB v2 + Grafana)
+│   ├── telegraf/             # Telegraf MQTT consumer -> InfluxDB v2 config
+│   ├── grafana/              # auto-provisioned datasource and Basil dashboard JSON
+│   └── tools/sim_publish.py  # MQTT telemetry and event simulator
 └── docs/
+    ├── architecture.md       # end-to-end sequence and interface specification
+    ├── watering_node_wiring.md
+    └── model_training_guide.md
 ```
 
 ### Building
 
 ```sh
 cp include/secrets.example.h include/secrets.h   # then fill in
-pio run -e camera -t upload                      # or: camera-mock, capture, watering, watering-mock
+pio run -e camera -t upload                      # or: capture, watering
 pio device monitor
 ```
 
@@ -119,19 +127,11 @@ typedef struct __attribute__((packed)) {
 
 | Part | Node |
 |---|---|
-| Freenove ESP32-WROVER CAM (OV2640, 8 MB PSRAM) | Camera node |
+| Freenove ESP32-WROVER CAM (OV7670/OV2640, 8 MB PSRAM) | Camera node |
 | ESP32 DevKitC + expansion board | Watering node |
-| Capacitive soil moisture sensor | Watering node |
-| Peristaltic pump + relay / logic-level MOSFET + flyback diode, separate pump supply | Watering node |
+| Pulsed-power resistive soil moisture sensor | Watering node |
+| 12V peristaltic pump + ULN2003A Darlington driver + step-down buck converter | Watering node |
 | Supermarket basil 🌿 | Both |
-
-## Development without meeting up
-
-- All physical hardware lives at Caleb's place. Aida develops the ML and cloud side remotely and tests on her own camera board.
-- Camera firmware is pushed to this repo and flashed onto Caleb's camera board for integration.
-- Training data comes from both basil plants, which improves robustness to different plants and lighting.
-- Mock modes (`MOCK_SENSORS`, `MOCK_HEALTH`) let each node run without the other.
-- **Fallback:** if the ML model isn't ready by around 30 Oct, the camera node uses a colour heuristic (share of yellow/brown pixels) so the system still works end to end.
 
 ## Submission checklist
 

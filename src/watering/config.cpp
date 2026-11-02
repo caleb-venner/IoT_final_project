@@ -4,6 +4,7 @@
 // Node:    watering node (ESP32 DevKitC)
 
 #include "config.h"
+#include "plant_msgs.h"
 #include <Preferences.h>
 
 WateringConfig g_cfg;
@@ -34,6 +35,9 @@ void config_reset_defaults() {
   snprintf(g_cfg.mqtt_user, sizeof(g_cfg.mqtt_user), "%s", MQTT_USER);
   snprintf(g_cfg.mqtt_pass, sizeof(g_cfg.mqtt_pass), "%s", MQTT_PASS);
   snprintf(g_cfg.mqtt_client_id, sizeof(g_cfg.mqtt_client_id), "%s", MQTT_CLIENT_ID);
+  snprintf(g_cfg.mqtt_topic_telemetry, sizeof(g_cfg.mqtt_topic_telemetry), "%s", MQTT_TOPIC_TELEMETRY);
+  snprintf(g_cfg.mqtt_topic_events, sizeof(g_cfg.mqtt_topic_events), "%s", MQTT_TOPIC_EVENTS);
+  snprintf(g_cfg.mqtt_topic_status, sizeof(g_cfg.mqtt_topic_status), "%s", MQTT_TOPIC_STATUS);
 }
 
 void config_load() {
@@ -75,6 +79,15 @@ void config_load() {
   String cid = s_prefs.getString("mqtt_cid", g_cfg.mqtt_client_id);
   snprintf(g_cfg.mqtt_client_id, sizeof(g_cfg.mqtt_client_id), "%s", cid.c_str());
 
+  String t_telem = s_prefs.getString("topic_telem", g_cfg.mqtt_topic_telemetry);
+  snprintf(g_cfg.mqtt_topic_telemetry, sizeof(g_cfg.mqtt_topic_telemetry), "%s", t_telem.c_str());
+
+  String t_ev = s_prefs.getString("topic_events", g_cfg.mqtt_topic_events);
+  snprintf(g_cfg.mqtt_topic_events, sizeof(g_cfg.mqtt_topic_events), "%s", t_ev.c_str());
+
+  String t_stat = s_prefs.getString("topic_status", g_cfg.mqtt_topic_status);
+  snprintf(g_cfg.mqtt_topic_status, sizeof(g_cfg.mqtt_topic_status), "%s", t_stat.c_str());
+
   s_prefs.end();
   config_sanitise();
   Serial.println("[config] Loaded configuration from NVS.");
@@ -103,9 +116,25 @@ void config_sanitise() {
   g_cfg.moisture_high_pct = constrain(g_cfg.moisture_high_pct, 0.0f, 100.0f);
   g_cfg.wilt_conf_min     = constrain(g_cfg.wilt_conf_min, 0.0f, 1.0f);
 
+  // Migrate away from the old placeholder if NVS still holds "broker.example.com"
+  if (g_cfg.mqtt_host[0] == '\0' || strcmp(g_cfg.mqtt_host, "broker.example.com") == 0) {
+    snprintf(g_cfg.mqtt_host, sizeof(g_cfg.mqtt_host), "%s", MQTT_HOST);
+    g_cfg.mqtt_port = MQTT_PORT;
+    snprintf(g_cfg.mqtt_user, sizeof(g_cfg.mqtt_user), "%s", MQTT_USER);
+    snprintf(g_cfg.mqtt_pass, sizeof(g_cfg.mqtt_pass), "%s", MQTT_PASS);
+  }
   if (g_cfg.mqtt_port == 0) g_cfg.mqtt_port = MQTT_PORT;
   if (g_cfg.mqtt_client_id[0] == '\0') {
     snprintf(g_cfg.mqtt_client_id, sizeof(g_cfg.mqtt_client_id), "%s", MQTT_CLIENT_ID);
+  }
+  if (g_cfg.mqtt_topic_telemetry[0] == '\0') {
+    snprintf(g_cfg.mqtt_topic_telemetry, sizeof(g_cfg.mqtt_topic_telemetry), "%s", MQTT_TOPIC_TELEMETRY);
+  }
+  if (g_cfg.mqtt_topic_events[0] == '\0') {
+    snprintf(g_cfg.mqtt_topic_events, sizeof(g_cfg.mqtt_topic_events), "%s", MQTT_TOPIC_EVENTS);
+  }
+  if (g_cfg.mqtt_topic_status[0] == '\0') {
+    snprintf(g_cfg.mqtt_topic_status, sizeof(g_cfg.mqtt_topic_status), "%s", MQTT_TOPIC_STATUS);
   }
 }
 
@@ -137,6 +166,9 @@ void config_save() {
   s_prefs.putString("mqtt_user", g_cfg.mqtt_user);
   s_prefs.putString("mqtt_pass", g_cfg.mqtt_pass);
   s_prefs.putString("mqtt_cid", g_cfg.mqtt_client_id);
+  s_prefs.putString("topic_telem", g_cfg.mqtt_topic_telemetry);
+  s_prefs.putString("topic_events", g_cfg.mqtt_topic_events);
+  s_prefs.putString("topic_status", g_cfg.mqtt_topic_status);
 
   s_prefs.end();
   Serial.println("[config] Saved configuration to NVS.");

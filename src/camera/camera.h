@@ -1,6 +1,6 @@
 // camera.h
-// Purpose: OV2640 init and frame capture via esp_camera.
-// OWNER:   Aida
+// Purpose: Camera sensor init and frame capture via esp_camera.
+// OWNER:   Caleb
 // Node:    camera node (Freenove ESP32-WROVER CAM)
 
 #pragma once

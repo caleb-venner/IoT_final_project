@@ -1,6 +1,6 @@
 // inference.h
 // Purpose: On-device plant health classifier interface (healthy / wilted).
-// OWNER:   Aida
+// OWNER:   Caleb
 // Node:    camera node (Freenove ESP32-WROVER CAM)
 
 #pragma once
@@ -15,4 +15,4 @@ struct HealthResult {
 };
 
 bool inference_init();
-HealthResult inference_run(camera_fb_t* fb);  // TODO(Aida): Edge Impulse classifier
+HealthResult inference_run(camera_fb_t* fb);

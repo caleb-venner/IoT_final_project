@@ -144,6 +144,9 @@ static void send_status_json() {
   cfg["mqtt_user"]            = g_cfg.mqtt_user;
   cfg["mqtt_pass_set"]        = g_cfg.mqtt_pass[0] != '\0';  // never echo the password over HTTP
   cfg["mqtt_client_id"]       = g_cfg.mqtt_client_id;
+  cfg["mqtt_topic_telemetry"] = g_cfg.mqtt_topic_telemetry;
+  cfg["mqtt_topic_events"]    = g_cfg.mqtt_topic_events;
+  cfg["mqtt_topic_status"]    = g_cfg.mqtt_topic_status;
 
   String out;
   serializeJson(doc, out);
@@ -399,6 +402,18 @@ static const char kIndexHtml[] PROGMEM = R"rawliteral(<!DOCTYPE html>
         <label>Telemetry Interval (seconds)</label>
         <input type="number" min="2" id="cfg-telem-int-s">
       </div>
+      <div>
+        <label>Telemetry Topic</label>
+        <input type="text" id="cfg-topic-telem">
+      </div>
+      <div>
+        <label>Events Topic</label>
+        <input type="text" id="cfg-topic-events">
+      </div>
+      <div>
+        <label>Status Topic (LWT)</label>
+        <input type="text" id="cfg-topic-status">
+      </div>
     </div>
     <div class="btn-row" style="margin-top:14px;">
       <button class="success" onclick="saveConfig()">💾 Save MQTT Settings</button>
@@ -440,6 +455,9 @@ function populateForm(cfg) {
   pass.placeholder = cfg.mqtt_pass_set ? '(unchanged)' : '(none)';
   document.getElementById('cfg-mqtt-cid').value = cfg.mqtt_client_id;
   document.getElementById('cfg-telem-int-s').value = cfg.telemetry_interval_s;
+  document.getElementById('cfg-topic-telem').value = cfg.mqtt_topic_telemetry;
+  document.getElementById('cfg-topic-events').value = cfg.mqtt_topic_events;
+  document.getElementById('cfg-topic-status').value = cfg.mqtt_topic_status;
 }
 
 function renderStatus(d) {
@@ -624,7 +642,10 @@ async function saveConfig() {
     mqtt_port: parseInt(document.getElementById('cfg-mqtt-port').value, 10),
     mqtt_user: document.getElementById('cfg-mqtt-user').value.trim(),
     mqtt_client_id: document.getElementById('cfg-mqtt-cid').value.trim(),
-    telemetry_interval_s: parseInt(document.getElementById('cfg-telem-int-s').value, 10)
+    telemetry_interval_s: parseInt(document.getElementById('cfg-telem-int-s').value, 10),
+    mqtt_topic_telemetry: document.getElementById('cfg-topic-telem').value.trim(),
+    mqtt_topic_events: document.getElementById('cfg-topic-events').value.trim(),
+    mqtt_topic_status: document.getElementById('cfg-topic-status').value.trim()
   };
   const pass = document.getElementById('cfg-mqtt-pass').value;
   if (pass) payload.mqtt_pass = pass;
@@ -685,7 +706,8 @@ static void update_field(JsonVariantConst v, char* dst, size_t n) {
 static bool mqtt_settings_differ(const WateringConfig& a, const WateringConfig& b) {
   return a.mqtt_enabled != b.mqtt_enabled || a.mqtt_port != b.mqtt_port ||
          strcmp(a.mqtt_host, b.mqtt_host) != 0 || strcmp(a.mqtt_user, b.mqtt_user) != 0 ||
-         strcmp(a.mqtt_pass, b.mqtt_pass) != 0 || strcmp(a.mqtt_client_id, b.mqtt_client_id) != 0;
+         strcmp(a.mqtt_pass, b.mqtt_pass) != 0 || strcmp(a.mqtt_client_id, b.mqtt_client_id) != 0 ||
+         strcmp(a.mqtt_topic_status, b.mqtt_topic_status) != 0;
 }
 
 // POST /api/config: "?reset=1" restores defaults, otherwise applies a (partial) JSON body.
@@ -718,6 +740,9 @@ static void handle_config_post() {
     update_field(doc["mqtt_user"],      g_cfg.mqtt_user,      sizeof(g_cfg.mqtt_user));
     update_field(doc["mqtt_pass"],      g_cfg.mqtt_pass,      sizeof(g_cfg.mqtt_pass));
     update_field(doc["mqtt_client_id"], g_cfg.mqtt_client_id, sizeof(g_cfg.mqtt_client_id));
+    update_field(doc["mqtt_topic_telemetry"], g_cfg.mqtt_topic_telemetry, sizeof(g_cfg.mqtt_topic_telemetry));
+    update_field(doc["mqtt_topic_events"],    g_cfg.mqtt_topic_events,    sizeof(g_cfg.mqtt_topic_events));
+    update_field(doc["mqtt_topic_status"],    g_cfg.mqtt_topic_status,    sizeof(g_cfg.mqtt_topic_status));
   }
 
   config_sanitise();  // single validation point for both reset and user input

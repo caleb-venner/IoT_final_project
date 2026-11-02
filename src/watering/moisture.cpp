@@ -49,12 +49,6 @@ void moisture_init() {
 }
 
 int moisture_read_raw() {
-#ifdef MOCK_SENSORS
-  static int s_mock_raw = 1400;
-  s_last_raw = s_mock_raw;
-  s_last_read_ms = millis();
-  return s_last_raw;
-#else
   // Power the sensor briefly (15 ms) to prevent trace electrolysis
   digitalWrite(MOISTURE_PWR_PIN, HIGH);
   delay(15);
@@ -69,7 +63,6 @@ int moisture_read_raw() {
   s_last_raw = (int)(sum / MOISTURE_SAMPLES);
   s_last_read_ms = millis();
   return s_last_raw;
-#endif
 }
 
 float moisture_read_pct() {

@@ -36,8 +36,8 @@ flowchart TB
 
 | Student | Primary technical responsibility | Shared responsibility |
 |---|---|---|
-| **Caleb Venner** | Watering node: moisture sensing and calibration, pump driver, watering control logic. ESP-NOW link between nodes (sender on camera node, receiver on watering node). MQTT publishing from the watering node. Hardware assembly. | Integration, testing |
-| **Aida** | Edge ML: training data collection and labelling, model training (Edge Impulse), on-device inference code for the camera node. Cloud chain: MQTT broker setup, topic and payload design, Telegraf → InfluxDB, Grafana dashboard. | Integration, testing |
+| **Caleb Venner** | Watering node: moisture sensing and calibration, pump driver, watering control logic. ESP-NOW link between nodes (sender on camera node, receiver on watering node). MQTT publishing from the watering node. Hardware assembly. Edge ML: training data collection and labelling, model training (Edge Impulse), On-device inference code for the camera node. | Integration, testing |
+| **Aida** | Cloud chain: MQTT broker setup, topic and payload design, MQTT → Telegraf → InfluxDB. Data Presentation: Grafana dashboard. | Integration, testing |
 
 ### Rubric mapping (TaskG1)
 
@@ -99,7 +99,7 @@ typedef struct __attribute__((packed)) {
 - Sent once per inference, roughly every 60 s.
 - Both nodes must be on the **same Wi-Fi channel** as the router used by the watering node.
 
-### MQTT topics (proposed, Aida to confirm)
+### MQTT topics
 
 | Topic | Payload (JSON) | When |
 |---|---|---|

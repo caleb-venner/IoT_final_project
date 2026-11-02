@@ -6,8 +6,8 @@
 #pragma once
 #define WIFI_SSID     "your-ssid"   // camera node only uses this to find the router channel
 #define WIFI_PASS     "your-password"
-#define MQTT_HOST     "broker.example.com"
-#define MQTT_PORT     8883
-#define MQTT_USER     "user"
-#define MQTT_PASS     "pass"
+#define MQTT_HOST     "broker.emqx.io"
+#define MQTT_PORT     1883
+#define MQTT_USER     "emqx"
+#define MQTT_PASS     "public"
 #define MQTT_CLIENT_ID "watering-node"

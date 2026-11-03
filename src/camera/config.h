@@ -18,6 +18,10 @@
 #define INFERENCE_INTERVAL_MS 60000UL
 #define WARMUP_FRAMES         2
 
+// ---------- Local Wi-Fi / mDNS hostnames ----------
+#define CAM_MDNS_HOSTNAME      "basil-cam"
+#define WATERING_MDNS_HOSTNAME "basil-water"
+
 // ---------- ESP-NOW (OWNER: Caleb) ----------
 // Used if the SSID scan fails. Must match the router the watering node is on.
 #define ESPNOW_CHANNEL 1

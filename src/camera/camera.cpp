@@ -1,6 +1,6 @@
 // camera.cpp
-// Purpose: Camera sensor init and frame capture via esp_camera (supports OV7670/OV2640 in RGB565 mode
-//          with idle XCLK clock gating to eliminate inductor coil whine between captures).
+// Purpose: Camera sensor init and frame capture via esp_camera with automatic re-init recovery
+//          on capture failure (handles shared 5V rail power-up and voltage dips).
 // OWNER:   Caleb
 // Node:    camera node (Freenove ESP32-WROVER CAM)
 
@@ -8,18 +8,9 @@
 #include "camera.h"
 #include "config.h"
 
-static void silence_camera_xclk() {
-  gpio_matrix_out(CAM_PIN_XCLK, SIG_GPIO_OUT_IDX, false, false);
-  pinMode(CAM_PIN_XCLK, OUTPUT);
-  digitalWrite(CAM_PIN_XCLK, LOW);
-}
+static bool s_initialised = false;
 
-static void wake_camera_xclk() {
-  ledcAttachPin(CAM_PIN_XCLK, LEDC_CHANNEL_0);
-  delay(80);
-}
-
-bool camera_init() {
+static camera_config_t make_camera_config() {
   camera_config_t cfg = {};
   cfg.pin_pwdn     = CAM_PIN_PWDN;
   cfg.pin_reset    = CAM_PIN_RESET;
@@ -46,41 +37,61 @@ bool camera_init() {
   cfg.fb_count     = 1;
   cfg.fb_location  = psramFound() ? CAMERA_FB_IN_PSRAM : CAMERA_FB_IN_DRAM;
   cfg.grab_mode    = CAMERA_GRAB_WHEN_EMPTY;
+  return cfg;
+}
 
-  esp_err_t err = esp_camera_init(&cfg);
-  if (err != ESP_OK) {
-    Serial.printf("[camera] esp_camera_init failed: 0x%x (%s)\n",
-                  (unsigned)err, esp_err_to_name(err));
-    return false;
+bool camera_init() {
+  camera_config_t cfg = make_camera_config();
+
+  for (int attempt = 1; attempt <= 3; ++attempt) {
+    esp_err_t err = esp_camera_init(&cfg);
+    if (err == ESP_OK) {
+      sensor_t* s = esp_camera_sensor_get();
+      if (s) {
+        s->set_whitebal(s, 1);
+        s->set_awb_gain(s, 1);
+        s->set_exposure_ctrl(s, 1);
+        s->set_aec2(s, 1);
+        s->set_gain_ctrl(s, 1);
+      }
+      s_initialised = true;
+      Serial.printf("[camera] esp_camera_init succeeded (attempt %d)\n", attempt);
+      return true;
+    }
+    Serial.printf("[camera] esp_camera_init attempt %d failed: 0x%x (%s)\n",
+                  attempt, (unsigned)err, esp_err_to_name(err));
+    esp_camera_deinit();
+    delay(250);
   }
 
-  sensor_t* s = esp_camera_sensor_get();
-  if (s) {
-    s->set_whitebal(s, 1);
-    s->set_awb_gain(s, 1);
-    s->set_exposure_ctrl(s, 1);
-    s->set_aec2(s, 1);
-    s->set_gain_ctrl(s, 1);
-  }
-
-  silence_camera_xclk();
-  return true;
+  s_initialised = false;
+  return false;
 }
 
 camera_fb_t* camera_capture() {
-  wake_camera_xclk();
+  if (!s_initialised && !camera_init()) {
+    return nullptr;
+  }
 
   for (int i = 0; i < WARMUP_FRAMES; i++) {
     camera_fb_t* warmup = esp_camera_fb_get();
     if (warmup) {
       esp_camera_fb_return(warmup);
     }
-    delay(50);
+    delay(40);
   }
 
   camera_fb_t* fb = esp_camera_fb_get();
   if (!fb) {
-    silence_camera_xclk();
+    // Self-heal if a 5V rail voltage dip wedged the DVP sensor state machine
+    Serial.println("[camera] frame grab timed out, re-initialising sensor...");
+    esp_camera_deinit();
+    s_initialised = false;
+    delay(150);
+    if (camera_init()) {
+      delay(60);
+      fb = esp_camera_fb_get();
+    }
   }
   return fb;
 }
@@ -89,5 +100,4 @@ void camera_release(camera_fb_t* fb) {
   if (fb) {
     esp_camera_fb_return(fb);
   }
-  silence_camera_xclk();
 }

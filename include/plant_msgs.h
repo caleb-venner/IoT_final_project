@@ -1,14 +1,15 @@
 // plant_msgs.h
-// Purpose: Agreed contract between nodes: ESP-NOW health message and MQTT topic names.
+// Purpose: Agreed contract between nodes: local HTTP health message and MQTT topic names.
 //          Change only by agreement between Caleb and Aida.
-// OWNER:   Shared (ESP-NOW struct: Caleb, MQTT topic design: Aida)
+// OWNER:   Shared (Health struct: Caleb, MQTT topic design: Aida)
 // Node:    camera node, watering node, tools/*
 
 #pragma once
 #include <stdint.h>
 
-// ---------- ESP-NOW: camera node -> watering node ----------
+// ---------- Local Wi-Fi HTTP: camera node -> watering node (POST /health) ----------
 #define PLANT_MSG_VERSION 1
+#define PLANT_HTTP_MAX_IMG_BYTES 24576 // 24 KB max JPEG buffer per image slot for HTTP POST /health uploads
 
 enum PlantState : uint8_t {
   PLANT_HEALTHY = 0,
@@ -23,8 +24,6 @@ typedef struct __attribute__((packed)) {
   uint32_t seq;           // increments every send
   uint32_t inference_ms;  // inference duration
 } PlantHealthMsg;
-
-static_assert(sizeof(PlantHealthMsg) <= 250, "ESP-NOW payload limit");
 
 // ---------- MQTT topics (proposed; OWNER of design: Aida) ----------
 #define MQTT_TOPIC_TELEMETRY "farm/basil_aida_caleb/telemetry"

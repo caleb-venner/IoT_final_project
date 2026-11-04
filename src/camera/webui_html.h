@@ -1,10 +1,5 @@
-// webui_html.h
-// Purpose: Embedded PROGMEM single-page WebUI for the Camera Node (http://basil-cam.local/),
-//          organised into two tabs:
-//            1. Live Camera & Classification
-//            2. OTA Firmware Update
-// OWNER:   Caleb
-// Node:    camera node (Freenove ESP32-WROVER CAM)
+// Embedded PROGMEM WebUI for the camera node (http://basil-cam.local/),
+// providing live inference status, frame preview, and OTA firmware upload.
 
 #pragma once
 #include <Arduino.h>
@@ -17,66 +12,74 @@ static const char kCamIndexHtml[] PROGMEM = R"rawliteral(<!DOCTYPE html>
 <title>Basil Camera Node</title>
 <style>
   :root {
-    --bg: #0f172a; --card: #1e293b; --border: #334155;
-    --text: #f8fafc; --muted: #94a3b8; --accent: #38bdf8;
-    --green: #22c55e; --amber: #f59e0b;
+    --bg: #121417;
+    --card: #181b20;
+    --border: #262b33;
+    --text: #e2e8f0;
+    --muted: #8b95a5;
+    --accent: #6b90b2;
+    --green: #5c997b;
+    --amber: #b89050;
   }
   * { box-sizing: border-box; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background: var(--bg); color: var(--text); max-width: 760px; margin: 20px auto; padding: 0 16px;
+    background: var(--bg); color: var(--text); max-width: 760px; margin: 24px auto; padding: 0 16px;
+    line-height: 1.45;
   }
   header {
-    display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
-    gap: 10px; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border);
+    display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline;
+    gap: 10px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border);
   }
-  h1 { font-size: 1.35rem; margin: 0; }
-  h2 { font-size: 1.05rem; color: var(--accent); margin: 0 0 12px 0; }
-  .meta { font-size: 0.84rem; color: var(--muted); }
-  .tabs { display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+  h1 { font-size: 1.25rem; font-weight: 600; margin: 0; }
+  h2 { font-size: 0.95rem; font-weight: 600; color: var(--text); margin: 0 0 12px 0; }
+  .meta { font-size: 0.82rem; color: var(--muted); }
+  .tabs { display: flex; gap: 20px; margin-bottom: 20px; border-bottom: 1px solid var(--border); }
   .tab-btn {
-    background: var(--card); color: var(--muted); border: 1px solid var(--border);
-    padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.88rem;
+    background: transparent; color: var(--muted); border: none;
+    border-bottom: 2px solid transparent; border-radius: 0;
+    padding: 8px 2px; cursor: pointer; font-weight: 500; font-size: 0.9rem;
   }
-  .tab-btn.active { background: #0284c7; color: #fff; border-color: var(--accent); }
+  .tab-btn:hover { color: var(--text); background: transparent; }
+  .tab-btn.active { color: var(--text); border-bottom-color: var(--accent); background: transparent; }
   .tab-pane { display: none; }
   .tab-pane.active { display: block; }
-  .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: 16px; margin-bottom: 14px; }
   button {
-    background: #0284c7; color: #fff; border: 1px solid var(--accent);
-    padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.86rem;
+    background: #263849; color: #dbe7f3; border: 1px solid #456380;
+    padding: 7px 13px; border-radius: 4px; cursor: pointer; font-weight: 500; font-size: 0.84rem;
   }
-  button:hover { background: #0369a1; }
+  button:hover { background: #2f4559; }
   code { color: var(--accent); }
   .frame-wrap {
     position: relative; width: 100%; max-width: 480px; aspect-ratio: 4 / 3;
-    background: #020617; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); margin-top: 12px;
+    background: #0c0e10; border-radius: 3px; overflow: hidden; border: 1px solid var(--border); margin-top: 12px;
   }
   .frame-wrap img { width: 100%; height: 100%; object-fit: contain; display: block; transform: scaleX(-1); }
   .roi-box {
     position: absolute; top: 0; bottom: 0; right: 20%; width: 55%;
-    border: 2px dashed rgba(56, 189, 248, 0.9); background: rgba(56, 189, 248, 0.06); pointer-events: none;
+    border: 1px dashed rgba(107, 144, 178, 0.8); background: rgba(107, 144, 178, 0.05); pointer-events: none;
   }
 </style>
 </head>
 <body>
   <header>
     <div>
-      <h1>📷 Basil Edge-ML Camera Node</h1>
+      <h1>Basil Edge-ML Camera Node</h1>
       <div class="meta" id="net-meta">Loading...</div>
     </div>
   </header>
 
   <nav class="tabs">
-    <button class="tab-btn active" id="tab-btn-live" onclick="switchTab('live')">📊 Live Camera &amp; Classification</button>
-    <button class="tab-btn" id="tab-btn-ota" onclick="switchTab('ota')">⚙️ OTA Firmware Update</button>
+    <button class="tab-btn active" id="tab-btn-live" onclick="switchTab('live')">Live Camera &amp; Classification</button>
+    <button class="tab-btn" id="tab-btn-ota" onclick="switchTab('ota')">OTA Firmware Update</button>
   </nav>
 
   <div class="tab-pane active" id="tab-live">
     <div class="card">
       <h2>Latest Edge-ML Inference &amp; Frame</h2>
-      <p id="inf-meta" style="margin:0 0 12px 0;">--</p>
-      <button onclick="triggerCapture()">📸 Capture, Classify &amp; Push to Watering Node Now</button>
+      <p id="inf-meta" style="margin:0 0 12px 0;font-size:0.88rem;">--</p>
+      <button onclick="triggerCapture()">Capture, Classify &amp; Push to Watering Node Now</button>
       <div class="frame-wrap" id="frame-box" style="display:none;">
         <img id="cam-img" alt="Latest capture">
         <div class="roi-box"></div>
@@ -86,10 +89,10 @@ static const char kCamIndexHtml[] PROGMEM = R"rawliteral(<!DOCTYPE html>
 
   <div class="tab-pane" id="tab-ota">
     <div class="card">
-      <h2>⬆️ Camera Node OTA Firmware Update</h2>
+      <h2>Camera Node OTA Firmware Update</h2>
       <p class="meta">Upload a compiled <code>.pio/build/camera/firmware.bin</code> file to update the camera node over Wi-Fi.</p>
       <form method="POST" action="/api/ota" enctype="multipart/form-data">
-        <input type="file" name="firmware" accept=".bin" required style="color:var(--muted);">
+        <input type="file" name="firmware" accept=".bin" required style="color:var(--muted);font-size:0.84rem;">
         <button type="submit">Upload &amp; Flash (.bin)</button>
       </form>
     </div>

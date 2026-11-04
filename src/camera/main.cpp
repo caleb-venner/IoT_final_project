@@ -1,9 +1,6 @@
-// main.cpp
-// Purpose: Camera node entry point. Runs periodic and on-demand Edge-ML wilt classification,
-//          POSTs PlantHealthMsg + full 320x240 JPEG over local Wi-Fi HTTP to the watering node,
-//          and serves a local WebUI + OTA firmware updater at http://basil-cam.local/.
-// OWNER:   Caleb
-// Node:    camera node (Freenove ESP32-WROVER CAM)
+// Camera node entry point. Runs periodic and on-demand Edge-ML wilt classification,
+// sends health results and 320x240 JPEG frames over Wi-Fi HTTP to the watering node,
+// and serves a local WebUI and OTA updater at http://basil-cam.local/.
 
 #include <Arduino.h>
 #include <WiFi.h>

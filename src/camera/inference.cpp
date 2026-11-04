@@ -1,7 +1,4 @@
-// inference.cpp
-// Purpose: On-device plant health classifier using TinyBasilCNN weights in model_weights.h.
-// OWNER:   Caleb
-// Node:    camera node (Freenove ESP32-WROVER CAM)
+// On-device plant health classifier executing TinyBasilCNN weights from model_weights.h.
 
 #include <Arduino.h>
 #include <math.h>

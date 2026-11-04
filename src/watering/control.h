@@ -1,7 +1,4 @@
-// control.h
-// Purpose: Watering decision logic (moisture + camera health, hysteresis, cooldown).
-// OWNER:   Caleb
-// Node:    watering node (ESP32 DevKitC)
+// Watering decision logic combining soil moisture thresholds, camera health, and soak cooldown.
 
 #pragma once
 #include <stdint.h>

@@ -1,12 +1,8 @@
-// config.h
-// Purpose: Compile-time configuration for the camera node (pins, timing, ESP-NOW).
-// OWNER:   Caleb
-// Node:    camera node (Freenove ESP32-WROVER CAM)
+// Compile-time configuration and pin assignments for the Freenove ESP32-WROVER camera node.
 
 #pragma once
 #include <stdint.h>
 
-// Wi-Fi SSID is only used to find the router's channel (the camera node never connects).
 #if __has_include("secrets.h")
 #include "secrets.h"
 #else
@@ -15,18 +11,12 @@
 #endif
 
 // ---------- Timing ----------
-#define INFERENCE_INTERVAL_MS 60000UL
-#define WARMUP_FRAMES         2
+#define INFERENCE_INTERVAL_MS 60000UL // Periodic capture & classification interval (60 s)
+#define WARMUP_FRAMES         2       // Frames discarded before capture so AEC/AWB settle
 
 // ---------- Local Wi-Fi / mDNS hostnames ----------
 #define CAM_MDNS_HOSTNAME      "basil-cam"
 #define WATERING_MDNS_HOSTNAME "basil-water"
-
-// ---------- ESP-NOW (OWNER: Caleb) ----------
-// Used if the SSID scan fails. Must match the router the watering node is on.
-#define ESPNOW_CHANNEL 1
-// Destination MAC. Broadcast by default; set to the watering node's STA MAC to unicast.
-#define ESPNOW_PEER_MAC {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}
 
 // ---------- Camera pins (CAMERA_MODEL_WROVER_KIT map) ----------
 #define CAM_PIN_PWDN  -1

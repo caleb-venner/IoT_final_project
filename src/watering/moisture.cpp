@@ -1,7 +1,5 @@
-// moisture.cpp
-// Purpose: Soil moisture sensing with switched-power anti-electrolysis, runtime calibration, and moving-average filter.
-// OWNER:   Caleb
-// Node:    watering node (ESP32 DevKitC)
+// Pulsed-power soil moisture sensing (15 ms excitation on GPIO 26, 16x ADC oversampling
+// on GPIO 34) with runtime dry/wet calibration and moving-average filtering.
 
 #include <Arduino.h>
 #include "moisture.h"

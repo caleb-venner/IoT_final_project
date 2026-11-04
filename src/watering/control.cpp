@@ -1,7 +1,4 @@
-// control.cpp
-// Purpose: Watering decision logic using runtime configuration (g_cfg).
-// OWNER:   Caleb
-// Node:    watering node (ESP32 DevKitC)
+// Watering decision state machine evaluated using runtime configuration (g_cfg).
 
 #include <Arduino.h>
 #include "control.h"

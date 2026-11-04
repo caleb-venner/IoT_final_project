@@ -133,8 +133,8 @@ Telegraf picks it up automatically and Grafana fills from real data.
 Caleb's hardware                                 Your cloud (unchanged)
 ┌──────────────────┐                             ┌───────────────────────────────┐
 │ Camera node      │                             │                               │
-│   ESP-NOW ──┐    │                             │  Telegraf → InfluxDB → Grafana│
-│ Watering node    │  MQTT publish               │  (subscribes to the topics)   │
+│  HTTP /health ──┐│                             │  Telegraf → InfluxDB → Grafana│
+│ Watering node   ▼│  MQTT publish               │  (subscribes to the topics)   │
 │   moisture+pump ─┼──▶ broker.emqx.io ◀─────────┼── Telegraf                    │
 └──────────────────┘   farm/basil_aida_caleb/*   └───────────────────────────────┘
 ```
@@ -143,7 +143,7 @@ Caleb's hardware                                 Your cloud (unchanged)
 
 Important architectural point (see `docs/architecture.md`): the **camera node does
 not publish to MQTT**. It sends its health result (`healthy`/`wilted` + confidence)
-to the **watering node over ESP-NOW** (local radio). The watering node merges that
+to the **watering node over the local Wi-Fi HTTP API (`POST /health`)**. The watering node merges that
 into its own telemetry and publishes it under the existing fields `health_state`,
 `health_conf`, and `health_age_s`.
 
@@ -152,7 +152,7 @@ telemetry** — it already drives the "Plant health confidence", "Current plant
 health", and "Camera health-data age" panels. No separate topic or Telegraf input is
 needed for the camera.
 
-For the full system both nodes must run: camera → ESP-NOW → watering → MQTT → cloud.
+For the full system both nodes must run: camera → HTTP `/health` → watering → MQTT → cloud.
 Only the watering node talks to the cloud.
 
 ### What Caleb does (device side)
@@ -168,7 +168,7 @@ Only the watering node talks to the cloud.
    ```
 3. Flash both nodes:
    ```sh
-   pio run -e camera   -t upload     # camera node (ESP-NOW health sender)
+   pio run -e camera   -t upload     # camera node (HTTP /health sender)
    pio run -e watering -t upload     # watering node (sensing + pump + MQTT)
    pio device monitor
    ```

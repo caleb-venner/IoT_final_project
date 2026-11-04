@@ -1,11 +1,6 @@
-// main.cpp
-// Purpose: Training data collection. Saves a JPEG to SD_MMC every CAPTURE_INTERVAL_MS
-//          with sequential filenames (/img_00001.jpg, ...), logs metadata to /capture_log.csv,
-//          and serves an HTTP interface over Wi-Fi (http://basil-cam.local/) to view/sync files.
-//          Supports both native JPEG sensors (OV2640) and raw RGB565 sensors (OV7670/OV7725/GC0308 @ I2C 0x21)
-//          via on-device frame2jpg() encoding.
-// OWNER:   Caleb
-// Node:    Freenove ESP32-WROVER CAM
+// Training data collection firmware. Saves sequential JPEGs (/img_00001.jpg, ...) and
+// /capture_log.csv to SD_MMC at CAPTURE_INTERVAL_MS, and serves an HTTP sync interface
+// at http://basil-cam.local/.
 
 #include <Arduino.h>
 #include <vector>

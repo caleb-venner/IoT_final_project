@@ -1,7 +1,4 @@
-// config.cpp
-// Purpose: Load and persist watering node configuration in ESP32 NVS (Preferences).
-// OWNER:   Caleb
-// Node:    watering node (ESP32 DevKitC)
+// Loads, sanitises, and persists watering node configuration in ESP32 NVS (Preferences).
 
 #include "config.h"
 #include "plant_msgs.h"
@@ -127,13 +124,16 @@ void config_sanitise() {
   if (g_cfg.mqtt_client_id[0] == '\0') {
     snprintf(g_cfg.mqtt_client_id, sizeof(g_cfg.mqtt_client_id), "%s", MQTT_CLIENT_ID);
   }
-  if (g_cfg.mqtt_topic_telemetry[0] == '\0') {
+  if (g_cfg.mqtt_topic_telemetry[0] == '\0' ||
+      strcmp(g_cfg.mqtt_topic_telemetry, "farm/basil_01/telemetry") == 0) {
     snprintf(g_cfg.mqtt_topic_telemetry, sizeof(g_cfg.mqtt_topic_telemetry), "%s", MQTT_TOPIC_TELEMETRY);
   }
-  if (g_cfg.mqtt_topic_events[0] == '\0') {
+  if (g_cfg.mqtt_topic_events[0] == '\0' ||
+      strcmp(g_cfg.mqtt_topic_events, "farm/basil_01/events") == 0) {
     snprintf(g_cfg.mqtt_topic_events, sizeof(g_cfg.mqtt_topic_events), "%s", MQTT_TOPIC_EVENTS);
   }
-  if (g_cfg.mqtt_topic_status[0] == '\0') {
+  if (g_cfg.mqtt_topic_status[0] == '\0' ||
+      strcmp(g_cfg.mqtt_topic_status, "farm/basil_01/status") == 0) {
     snprintf(g_cfg.mqtt_topic_status, sizeof(g_cfg.mqtt_topic_status), "%s", MQTT_TOPIC_STATUS);
   }
 }

@@ -1,7 +1,4 @@
-// pump.h
-// Purpose: Non-blocking peristaltic pump driver with mL dosing, run cap, and delivered-volume tracking.
-// OWNER:   Caleb
-// Node:    watering node (ESP32 DevKitC)
+// Non-blocking peristaltic pump driver with mL dosing, run-time safety caps, and volume tracking.
 
 #pragma once
 #include <stdint.h>

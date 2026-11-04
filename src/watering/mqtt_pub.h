@@ -1,7 +1,4 @@
-// mqtt_pub.h
-// Purpose: Wi-Fi + MQTT connection and JSON publishing of telemetry and pump events.
-// OWNER:   Caleb (publish code), Aida (topic/payload design)
-// Node:    watering node (ESP32 DevKitC)
+// Wi-Fi + MQTT client interface for publishing JSON telemetry, pump events, and node status.
 
 #pragma once
 #include <stdint.h>

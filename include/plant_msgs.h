@@ -1,8 +1,4 @@
-// plant_msgs.h
-// Purpose: Agreed contract between nodes: local HTTP health message and MQTT topic names.
-//          Change only by agreement between Caleb and Aida.
-// OWNER:   Shared (Health struct: Caleb, MQTT topic design: Aida)
-// Node:    camera node, watering node, tools/*
+// Shared message definitions and MQTT topic names used across the camera and watering nodes.
 
 #pragma once
 #include <stdint.h>
@@ -25,7 +21,7 @@ typedef struct __attribute__((packed)) {
   uint32_t inference_ms;  // inference duration
 } PlantHealthMsg;
 
-// ---------- MQTT topics (proposed; OWNER of design: Aida) ----------
+// ---------- MQTT topics ----------
 #define MQTT_TOPIC_TELEMETRY "farm/basil_aida_caleb/telemetry"
 #define MQTT_TOPIC_EVENTS    "farm/basil_aida_caleb/events"
 #define MQTT_TOPIC_STATUS    "farm/basil_aida_caleb/status"

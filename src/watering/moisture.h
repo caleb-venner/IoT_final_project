@@ -1,7 +1,4 @@
-// moisture.h
-// Purpose: Soil moisture sensing with pulsed power anti-electrolysis, runtime calibration, and smoothing.
-// OWNER:   Caleb
-// Node:    watering node (ESP32 DevKitC)
+// Pulsed-power resistive soil moisture sensor driver with runtime calibration and smoothing.
 
 #pragma once
 #include <stdint.h>

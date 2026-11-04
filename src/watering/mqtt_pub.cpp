@@ -1,7 +1,5 @@
-// mqtt_pub.cpp
-// Purpose: Wi-Fi + runtime-configurable PubSubClient with auto-reconnect, last will, and JSON publishing.
-// OWNER:   Caleb (publish code), Aida (topic/payload design)
-// Node:    watering node (ESP32 DevKitC)
+// Wi-Fi and runtime-configurable MQTT publisher with auto-reconnect, retained LWT status,
+// and JSON telemetry/event formatting.
 
 #include <Arduino.h>
 #include <WiFi.h>
@@ -38,8 +36,8 @@ static bool mqtt_connect() {
 
   if (ok) {
     s_last_rc = 0;
-    s_mqtt.publish(g_cfg.mqtt_topic_status, "online", true);
-    Serial.println("ok");
+    s_mqtt.publish(g_cfg.mqtt_topic_status, "online", true);  // true = retained
+    Serial.printf("ok (published %s -> online, retained)\n", g_cfg.mqtt_topic_status);
   } else {
     s_last_rc = s_mqtt.state();
     Serial.printf("failed, state=%d\n", s_last_rc);
@@ -73,7 +71,7 @@ void mqtt_apply_config() {
 
 void mqtt_init() {
   WiFi.mode(WIFI_STA);
-  WiFi.setSleep(false);  // Modem sleep causes ESP-NOW packet loss and slower WebUI response
+  WiFi.setSleep(false);  // Disable modem sleep for responsive WebUI and local HTTP /health requests
   WiFi.begin(WIFI_SSID, WIFI_PASS);
   Serial.printf("[wifi] connecting to %s", WIFI_SSID);
   uint32_t t0 = millis();
@@ -134,6 +132,7 @@ void mqtt_publish_telemetry(const Telemetry& t) {
   char buf[384];
   size_t n = serializeJson(doc, buf, sizeof(buf));
   s_mqtt.publish(g_cfg.mqtt_topic_telemetry, reinterpret_cast<const uint8_t*>(buf), n);
+  s_mqtt.publish(g_cfg.mqtt_topic_status, "online", true);  // true = retained
   Serial.printf("[mqtt] %s %s\n", g_cfg.mqtt_topic_telemetry, buf);
 }
 

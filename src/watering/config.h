@@ -1,7 +1,4 @@
-// config.h
-// Purpose: Compile-time defaults and runtime NVS-backed configuration for the watering node.
-// OWNER:   Caleb
-// Node:    watering node (ESP32 DevKitC)
+// Compile-time defaults and runtime NVS-backed configuration for the watering node.
 
 #pragma once
 #include <Arduino.h>
@@ -46,7 +43,7 @@
 
 // ---------- Default Timing ----------
 #define CONTROL_INTERVAL_MS    30000UL  // Default auto-sense & control interval (30 s)
-#define TELEMETRY_INTERVAL_MS  10000UL  // Default MQTT telemetry interval (10 s)
+#define TELEMETRY_INTERVAL_MS  60000UL  // Default MQTT telemetry interval (60 s, configurable in WebUI)
 
 // ---------- Runtime Configuration (stored in ESP32 NVS Preferences) ----------
 struct WateringConfig {

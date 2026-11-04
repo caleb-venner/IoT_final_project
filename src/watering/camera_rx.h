@@ -1,8 +1,5 @@
-// camera_rx.h
-// Purpose: Local Wi-Fi HTTP receiver for PlantHealthMsg and 320x240 JPEG previews from the
-//          camera node (POST /health), plus remote HTTP capture trigger and UDP IP discovery.
-// OWNER:   Caleb
-// Node:    watering node (ESP32 DevKitC)
+// Local Wi-Fi HTTP receiver interface for camera node health readings and 320x240 JPEG
+// previews (POST /health), remote capture triggers, and UDP discovery.
 
 #pragma once
 #include <stddef.h>

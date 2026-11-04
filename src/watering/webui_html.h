@@ -1,10 +1,5 @@
-// webui_html.h
-// Purpose: Embedded PROGMEM single-page WebUI for the Watering Node (http://basil-water.local/),
-//          organised into two tabs:
-//            1. Monitoring & Control (live moisture, pump dosing, automation, camera alignment & previews)
-//            2. Configuration & OTA (calibration, watering thresholds, MQTT settings, OTA firmware update)
-// OWNER:   Caleb
-// Node:    watering node (ESP32 DevKitC)
+// Embedded PROGMEM WebUI for the watering node (http://basil-water.local/),
+// split into Monitoring & Control and Configuration & OTA tabs.
 
 #pragma once
 #include <Arduino.h>
@@ -17,98 +12,109 @@ static const char kIndexHtml[] PROGMEM = R"rawliteral(<!DOCTYPE html>
 <title>Basil Watering Node</title>
 <style>
   :root {
-    --bg: #0f172a; --card: #1e293b; --border: #334155;
-    --text: #f8fafc; --muted: #94a3b8; --accent: #38bdf8;
-    --green: #22c55e; --amber: #f59e0b; --red: #ef4444;
+    --bg: #121417;
+    --card: #181b20;
+    --border: #262b33;
+    --text: #e2e8f0;
+    --muted: #8b95a5;
+    --accent: #6b90b2;
+    --green: #5c997b;
+    --amber: #b89050;
+    --red: #b06060;
   }
   * { box-sizing: border-box; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background: var(--bg); color: var(--text); margin: 0; padding: 20px;
+    background: var(--bg); color: var(--text); margin: 0; padding: 24px 16px;
+    line-height: 1.45;
   }
-  .container { max-width: 1000px; margin: 0 auto; }
+  .container { max-width: 980px; margin: 0 auto; }
   header {
-    display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
-    gap: 12px; margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--border);
+    display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline;
+    gap: 12px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border);
   }
-  h1 { font-size: 1.4rem; margin: 0; display: flex; align-items: center; gap: 10px; }
-  h2 { font-size: 1.05rem; margin: 0 0 14px 0; color: var(--accent); }
-  .meta { font-size: 0.82rem; color: var(--muted); }
+  h1 { font-size: 1.25rem; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
+  h2 { font-size: 0.95rem; font-weight: 600; margin: 0 0 12px 0; color: var(--text); }
+  .meta { font-size: 0.8rem; color: var(--muted); }
   .tabs {
-    display: flex; gap: 8px; margin-bottom: 18px; border-bottom: 1px solid var(--border);
-    padding-bottom: 10px;
+    display: flex; gap: 20px; margin-bottom: 20px; border-bottom: 1px solid var(--border);
   }
   .tab-btn {
-    background: #1e293b; color: var(--muted); border: 1px solid var(--border);
-    padding: 9px 18px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.9rem;
+    background: transparent; color: var(--muted); border: none;
+    border-bottom: 2px solid transparent; border-radius: 0;
+    padding: 8px 2px; cursor: pointer; font-weight: 500; font-size: 0.9rem;
   }
-  .tab-btn:hover { color: var(--text); background: #334155; }
+  .tab-btn:hover { color: var(--text); background: transparent; }
   .tab-btn.active {
-    background: #0284c7; color: #fff; border-color: var(--accent);
+    color: var(--text); border-bottom-color: var(--accent); background: transparent;
   }
   .tab-pane { display: none; }
   .tab-pane.active { display: block; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin-bottom: 16px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 14px; margin-bottom: 14px; }
   .card {
     background: var(--card); border: 1px solid var(--border);
-    border-radius: 10px; padding: 16px;
+    border-radius: 4px; padding: 16px;
   }
-  .big-val { font-size: 2rem; font-weight: 700; line-height: 1.1; }
-  .sub-val { font-size: 0.85rem; color: var(--muted); margin-top: 4px; }
-  .bar-wrap { width: 100%; height: 10px; background: #0f172a; border-radius: 5px; overflow: hidden; margin: 12px 0; }
+  .big-val { font-size: 1.75rem; font-weight: 600; line-height: 1.1; }
+  .sub-val { font-size: 0.82rem; color: var(--muted); margin-top: 4px; }
+  .bar-wrap { width: 100%; height: 6px; background: var(--bg); border-radius: 3px; overflow: hidden; margin: 12px 0; border: 1px solid var(--border); }
   .bar-fill { height: 100%; background: var(--green); width: 0%; transition: width 0.3s, background 0.3s; }
   .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
   button {
-    background: #334155; color: var(--text); border: 1px solid #475569;
-    padding: 8px 13px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.85rem;
+    background: #20242b; color: var(--text); border: 1px solid #323944;
+    padding: 7px 12px; border-radius: 4px; cursor: pointer; font-weight: 500; font-size: 0.83rem;
   }
-  button:hover { background: #475569; }
-  button.primary { background: #0284c7; border-color: #38bdf8; }
-  button.primary:hover { background: #0369a1; }
-  button.success { background: #16a34a; border-color: #22c55e; }
-  button.success:hover { background: #15803d; }
-  button.danger { background: #dc2626; border-color: #ef4444; }
-  button.danger:hover { background: #b91c1c; }
+  button:hover { background: #282d36; }
+  button.primary { background: #263849; border-color: #456380; color: #dbe7f3; }
+  button.primary:hover { background: #2f4559; }
+  button.success { background: #223a30; border-color: #3d6855; color: #d8ede3; }
+  button.success:hover { background: #2a473b; }
+  button.danger { background: #422626; border-color: #704040; color: #f2dede; }
+  button.danger:hover { background: #502e2e; }
   .input-inline {
     display: flex; align-items: center; gap: 8px; margin-top: 10px;
   }
   input[type="number"], input[type="text"], input[type="password"] {
-    background: #0f172a; color: var(--text); border: 1px solid var(--border);
-    border-radius: 6px; padding: 7px 10px; font-size: 0.9rem; width: 100%;
+    background: var(--bg); color: var(--text); border: 1px solid var(--border);
+    border-radius: 4px; padding: 6px 9px; font-size: 0.86rem; width: 100%;
+  }
+  input[type="number"]:focus, input[type="text"]:focus, input[type="password"]:focus {
+    outline: none; border-color: var(--accent);
   }
   .form-grid {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(195px, 1fr)); gap: 12px;
   }
-  label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 4px; }
+  label { display: block; font-size: 0.78rem; color: var(--muted); margin-bottom: 4px; }
   .badge {
-    display: inline-block; padding: 3px 9px; border-radius: 999px;
-    font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+    display: inline-block; padding: 2px 8px; border-radius: 3px;
+    font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.02em;
   }
-  .badge-on { background: rgba(34,197,94,0.2); color: #4ade80; border: 1px solid #22c55e; }
-  .badge-off { background: rgba(148,163,184,0.15); color: #94a3b8; border: 1px solid #475569; }
-  .badge-warn { background: rgba(245,158,11,0.2); color: #fbbf24; border: 1px solid #f59e0b; }
-  .kv-row { display: flex; justify-content: space-between; font-size: 0.86rem; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .badge-on { background: rgba(92,153,123,0.14); color: #84b89e; border: 1px solid rgba(92,153,123,0.35); }
+  .badge-off { background: rgba(139,149,165,0.1); color: var(--muted); border: 1px solid var(--border); }
+  .badge-warn { background: rgba(184,144,80,0.14); color: #cca86e; border: 1px solid rgba(184,144,80,0.35); }
+  .kv-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.84rem; padding: 6px 0; border-bottom: 1px solid var(--border); }
+  .kv-row:last-child { border-bottom: none; }
   .cam-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin-top: 12px; }
-  .cam-box { background: #0f172a; border: 1px solid var(--border); border-radius: 8px; padding: 10px; }
+  .cam-box { background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: 10px; }
   .cam-frame {
-    position: relative; width: 100%; aspect-ratio: 4 / 3; background: #020617;
-    border-radius: 6px; overflow: hidden; display: flex; align-items: center; justify-content: center;
+    position: relative; width: 100%; aspect-ratio: 4 / 3; background: #0c0e10;
+    border-radius: 3px; overflow: hidden; display: flex; align-items: center; justify-content: center;
   }
   .cam-frame img { width: 100%; height: 100%; object-fit: contain; display: none; transform: scaleX(-1); }
-  .cam-empty { color: var(--muted); font-size: 0.84rem; text-align: center; padding: 16px; }
+  .cam-empty { color: var(--muted); font-size: 0.82rem; text-align: center; padding: 16px; }
   .roi-overlay {
     position: absolute; top: 0; bottom: 0; right: 20%; width: 55%;
-    border: 2px dashed rgba(56, 189, 248, 0.9); background: rgba(56, 189, 248, 0.06);
+    border: 1px dashed rgba(107, 144, 178, 0.8); background: rgba(107, 144, 178, 0.05);
     pointer-events: none; display: flex; align-items: flex-start; justify-content: center;
   }
   .roi-label {
-    background: rgba(15, 23, 42, 0.85); color: var(--accent); font-size: 0.68rem;
-    font-weight: 700; padding: 2px 6px; border-radius: 0 0 4px 4px; letter-spacing: 0.03em;
+    background: rgba(18, 20, 23, 0.85); color: var(--accent); font-size: 0.66rem;
+    font-weight: 600; padding: 2px 6px; border-radius: 0 0 3px 3px; letter-spacing: 0.03em;
   }
   .toast {
-    position: fixed; bottom: 20px; right: 20px; background: #0284c7; color: #fff;
-    padding: 10px 16px; border-radius: 8px; font-weight: 600; font-size: 0.88rem;
-    display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.4); z-index: 100;
+    position: fixed; bottom: 20px; right: 20px; background: var(--card); color: var(--text);
+    border: 1px solid var(--accent); padding: 9px 14px; border-radius: 4px;
+    font-weight: 500; font-size: 0.84rem; display: none; z-index: 100;
   }
 </style>
 </head>
@@ -116,7 +122,7 @@ static const char kIndexHtml[] PROGMEM = R"rawliteral(<!DOCTYPE html>
 <div class="container">
   <header>
     <div>
-      <h1>🌿 Basil Watering Node</h1>
+      <h1>Basil Watering Node</h1>
       <div class="meta" id="net-meta">Connecting...</div>
     </div>
     <div style="display:flex;gap:8px;align-items:center;">
@@ -126,8 +132,8 @@ static const char kIndexHtml[] PROGMEM = R"rawliteral(<!DOCTYPE html>
   </header>
 
   <nav class="tabs">
-    <button class="tab-btn active" id="tab-btn-monitor" onclick="switchTab('monitor')">📊 Monitoring &amp; Control</button>
-    <button class="tab-btn" id="tab-btn-config" onclick="switchTab('config')">⚙️ Configuration &amp; OTA</button>
+    <button class="tab-btn active" id="tab-btn-monitor" onclick="switchTab('monitor')">Monitoring &amp; Control</button>
+    <button class="tab-btn" id="tab-btn-config" onclick="switchTab('config')">Configuration &amp; OTA</button>
   </nav>
 
   <!-- ==================== TAB 1: MONITORING & CONTROL ==================== -->
@@ -138,12 +144,12 @@ static const char kIndexHtml[] PROGMEM = R"rawliteral(<!DOCTYPE html>
         <h2>Soil Moisture Sensor</h2>
         <div style="display:flex;justify-content:space-between;align-items:baseline;">
           <div class="big-val" id="m-pct">--.- %</div>
-          <div style="font-size:1.1rem;font-weight:600;color:var(--accent);">Raw: <span id="m-raw">----</span></div>
+          <div style="font-size:0.95rem;color:var(--muted);">Raw: <span id="m-raw" style="color:var(--text);">----</span></div>
         </div>
         <div class="bar-wrap"><div class="bar-fill" id="m-bar"></div></div>
         <div class="sub-val" id="m-age">Last read: never</div>
         <div class="btn-row">
-          <button class="primary" onclick="triggerMeasure()">⚡ Measure Now (15ms Pulse)</button>
+          <button class="primary" onclick="triggerMeasure()">Measure Now (15ms Pulse)</button>
         </div>
       </div>
 
@@ -152,7 +158,7 @@ static const char kIndexHtml[] PROGMEM = R"rawliteral(<!DOCTYPE html>
         <h2>Peristaltic Pump Control</h2>
         <div style="display:flex;justify-content:space-between;align-items:baseline;">
           <div class="big-val" id="p-state">IDLE</div>
-          <div style="font-size:1.05rem;color:var(--accent);">Total: <span id="p-total">0.0</span> mL</div>
+          <div style="font-size:0.95rem;color:var(--muted);">Total: <span id="p-total" style="color:var(--text);">0.0</span> mL</div>
         </div>
         <div class="sub-val" id="p-rem">Ready for manual or automatic dosing</div>
 
@@ -161,11 +167,11 @@ static const char kIndexHtml[] PROGMEM = R"rawliteral(<!DOCTYPE html>
           <button class="primary" onclick="runPumpMl(10)">+10 mL</button>
           <button class="primary" onclick="runPumpMl(25)">+25 mL</button>
           <button class="primary" onclick="runPumpMl(50)">+50 mL</button>
-          <button class="danger" onclick="stopPump()">⏹ STOP</button>
+          <button class="danger" onclick="stopPump()">Stop</button>
         </div>
 
         <div class="input-inline">
-          <input type="number" id="custom-ml" value="15" min="1" max="300" step="0.5" style="width:95px;">
+          <input type="number" id="custom-ml" value="15" min="1" max="300" step="0.5" style="width:90px;">
           <button class="primary" onclick="runCustomMl()">Pump Custom mL</button>
           <button onclick="resetTotalMl()">Reset Total</button>
         </div>
@@ -184,7 +190,7 @@ static const char kIndexHtml[] PROGMEM = R"rawliteral(<!DOCTYPE html>
         </div>
         <div class="kv-row">
           <span>Cooldown Remaining</span>
-          <span><strong id="c-cooldown">0s</strong> <button style="padding:3px 7px;font-size:0.75rem;margin-left:6px;" onclick="resetCooldown()">Clear</button></span>
+          <span><strong id="c-cooldown">0s</strong> <button style="padding:2px 7px;font-size:0.74rem;margin-left:6px;" onclick="resetCooldown()">Clear</button></span>
         </div>
         <div class="kv-row">
           <span>Camera Health (Wi-Fi HTTP)</span>
@@ -196,7 +202,7 @@ static const char kIndexHtml[] PROGMEM = R"rawliteral(<!DOCTYPE html>
         </div>
         <div class="kv-row">
           <span>Watering Node MAC</span>
-          <code id="node-mac" style="color:var(--accent);">--</code>
+          <code id="node-mac" style="color:var(--muted);">--</code>
         </div>
       </div>
     </div>
@@ -205,26 +211,26 @@ static const char kIndexHtml[] PROGMEM = R"rawliteral(<!DOCTYPE html>
     <div class="card">
       <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;">
         <div>
-          <h2 style="margin-bottom:4px;">📷 Camera Alignment &amp; Recent Captures (Wi-Fi HTTP)</h2>
-          <div class="meta">Displays the 2 most recent 320×240 frames pushed to <code>POST /health</code>. Align the basil canopy inside the dashed ROI box (20%–75% width).</div>
+          <h2 style="margin-bottom:4px;">Camera Alignment &amp; Recent Captures</h2>
+          <div class="meta">Displays the 2 most recent 320x240 frames pushed to <code>POST /health</code>. Align the basil canopy inside the dashed ROI box (20%–75% width).</div>
         </div>
         <div style="display:flex;align-items:center;gap:12px;">
-          <label style="display:flex;align-items:center;gap:6px;margin:0;cursor:pointer;color:var(--text);font-size:0.84rem;">
+          <label style="display:flex;align-items:center;gap:6px;margin:0;cursor:pointer;color:var(--text);font-size:0.82rem;">
             <input type="checkbox" id="toggle-roi" checked onchange="toggleRoiOverlay(this.checked)">
             Show Canopy ROI (20%–75%)
           </label>
-          <button class="primary" onclick="requestCameraCapture()">📸 Capture &amp; Classify Now</button>
+          <button class="primary" onclick="requestCameraCapture()">Capture &amp; Classify Now</button>
         </div>
       </div>
 
-      <div class="meta" id="cam-diag-line" style="margin-top:8px;padding:6px 10px;background:#0f172a;border-radius:6px;border:1px solid var(--border);font-family:monospace;">
+      <div class="meta" id="cam-diag-line" style="margin-top:10px;padding:6px 10px;background:var(--bg);border-radius:3px;border:1px solid var(--border);font-family:monospace;">
         Camera IP: not discovered | Health Updates: 0 | Complete Images: 0 | Last Frame: none
       </div>
 
       <div class="cam-grid">
         <div class="cam-box">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-            <strong style="font-size:0.9rem;">Latest Capture (Slot 1)</strong>
+            <span style="font-size:0.85rem;font-weight:500;">Latest Capture (Slot 1)</span>
             <span id="cam-slot0-badge" class="badge badge-off">Waiting</span>
           </div>
           <div class="cam-frame">
@@ -237,7 +243,7 @@ static const char kIndexHtml[] PROGMEM = R"rawliteral(<!DOCTYPE html>
 
         <div class="cam-box">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-            <strong style="font-size:0.9rem;">Previous Capture (Slot 2)</strong>
+            <span style="font-size:0.85rem;font-weight:500;">Previous Capture (Slot 2)</span>
             <span id="cam-slot1-badge" class="badge badge-off">None</span>
           </div>
           <div class="cam-frame">
@@ -254,8 +260,8 @@ static const char kIndexHtml[] PROGMEM = R"rawliteral(<!DOCTYPE html>
   <!-- ==================== TAB 2: CONFIGURATION & OTA ==================== -->
   <div class="tab-pane" id="tab-config">
     <!-- Calibration & Thresholds Form -->
-    <div class="card" style="margin-bottom:16px;">
-      <h2>Sensor Calibration &amp; Watering Thresholds (Persisted in Flash)</h2>
+    <div class="card" style="margin-bottom:14px;">
+      <h2>Sensor Calibration &amp; Watering Thresholds</h2>
       <div class="btn-row" style="margin-top:0;margin-bottom:14px;">
         <button onclick="setRawCal('dry')" title="Measure &amp; save current Raw ADC as Dry">Set Current Raw as DRY (0%)</button>
         <button onclick="setRawCal('wet')" title="Measure &amp; save current Raw ADC as Wet">Set Current Raw as WET (100%)</button>
@@ -306,13 +312,13 @@ static const char kIndexHtml[] PROGMEM = R"rawliteral(<!DOCTYPE html>
         </div>
       </div>
       <div class="btn-row" style="margin-top:14px;">
-        <button class="success" onclick="saveConfig()">💾 Save Calibration &amp; Thresholds</button>
+        <button class="success" onclick="saveConfig()">Save Calibration &amp; Thresholds</button>
         <button onclick="resetDefaults()">Restore Defaults</button>
       </div>
     </div>
 
     <!-- MQTT Config Card -->
-    <div class="card" style="margin-bottom:16px;">
+    <div class="card" style="margin-bottom:14px;">
       <h2>MQTT Broker Configuration</h2>
       <div class="form-grid">
         <div>
@@ -357,19 +363,19 @@ static const char kIndexHtml[] PROGMEM = R"rawliteral(<!DOCTYPE html>
         </div>
       </div>
       <div class="btn-row" style="margin-top:14px;">
-        <button class="success" onclick="saveConfig()">💾 Save MQTT Settings</button>
-        <button class="primary" onclick="testMqttPublish()">📡 Publish Test Telemetry Now</button>
+        <button class="success" onclick="saveConfig()">Save MQTT Settings</button>
+        <button class="primary" onclick="testMqttPublish()">Publish Test Telemetry Now</button>
       </div>
     </div>
 
     <!-- OTA Firmware Update Card -->
     <div class="card">
-      <h2>⬆️ Over-The-Air (OTA) Firmware Update</h2>
+      <h2>OTA Firmware Update</h2>
       <div class="meta" style="margin-bottom:10px;">
-        Upload a compiled <code>.pio/build/watering/firmware.bin</code> image to update the watering node over Wi-Fi without unplugging USB.
+        Upload a compiled <code>.pio/build/watering/firmware.bin</code> image to update the watering node over Wi-Fi.
       </div>
       <div class="input-inline">
-        <input type="file" id="ota-file" accept=".bin" style="color:var(--muted);font-size:0.85rem;">
+        <input type="file" id="ota-file" accept=".bin" style="color:var(--muted);font-size:0.83rem;">
         <button class="primary" id="btn-ota" onclick="uploadOtaFirmware()">Upload &amp; Flash (.bin)</button>
         <span id="ota-status" class="meta"></span>
       </div>
@@ -377,7 +383,7 @@ static const char kIndexHtml[] PROGMEM = R"rawliteral(<!DOCTYPE html>
   </div>
 </div>
 
-<div class="toast" id="toast">Saved!</div>
+<div class="toast" id="toast">Saved</div>
 
 <script>
 let lastState = null;
@@ -399,7 +405,7 @@ function toggleRoiOverlay(show) {
 
 async function requestCameraCapture() {
   await fetch('/api/camera/capture', { method: 'POST' });
-  showToast('Requested immediate capture from camera node...');
+  showToast('Requested immediate capture from camera node');
   setTimeout(fetchStatus, 500);
   setTimeout(fetchStatus, 1100);
   setTimeout(fetchStatus, 1800);
@@ -424,8 +430,8 @@ async function uploadOtaFirmware() {
   try {
     const r = await fetch('/api/ota', { method: 'POST', body: formData });
     if (r.ok) {
-      statusEl.textContent = 'Success! Rebooting node in 5s...';
-      showToast('OTA Flash Complete! Rebooting...');
+      statusEl.textContent = 'Success. Rebooting node in 5s...';
+      showToast('OTA Flash Complete. Rebooting...');
       setTimeout(() => location.reload(), 5500);
     } else {
       const txt = await r.text();
@@ -734,7 +740,7 @@ async function testMqttPublish() {
   const r = await fetch('/api/mqtt/test', { method: 'POST' });
   const d = await r.json();
   renderStatus(d);
-  showToast(d.mqtt_connected ? 'Telemetry published!' : 'MQTT not connected');
+  showToast(d.mqtt_connected ? 'Telemetry published' : 'MQTT not connected');
 }
 
 fetchStatus();

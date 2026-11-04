@@ -1,10 +1,6 @@
-// http_tx.cpp
-// Purpose: Local Wi-Fi HTTP sender for PlantHealthMsg and full 320x240 JPEG images.
-//          Connects to the shared Wi-Fi router, discovers the watering node IP via fast UDP
-//          broadcast (port 4210) or mDNS (basil-water.local), and POSTs inference results
-//          + JPEG to http://<watering-ip>/health.
-// OWNER:   Caleb
-// Node:    camera node (Freenove ESP32-WROVER CAM)
+// Local Wi-Fi HTTP transmitter and UDP discovery client for the camera node.
+// Discovers the watering node via UDP broadcast (port 4210) or mDNS (basil-water.local)
+// and uploads PlantHealthMsg metadata + 320x240 JPEG frames to POST /health.
 
 #include <Arduino.h>
 #include <WiFi.h>

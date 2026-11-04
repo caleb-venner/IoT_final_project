@@ -1,10 +1,6 @@
-// main.cpp
-// Purpose: Watering node main firmware with WebUI (http://basil-water.local/),
-//          NVS-persisted calibration/thresholds, manual mL pump dosing,
-//          toggleable automatic irrigation, local Wi-Fi HTTP camera receiver (/health),
-//          runtime-configurable MQTT, and OTA firmware updates (/api/ota).
-// OWNER:   Caleb
-// Node:    watering node (ESP32 DevKitC)
+// Watering node entry point. Coordinates pulsed soil moisture sensing, peristaltic pump
+// dosing, automatic irrigation control, local Wi-Fi HTTP camera reception (/health),
+// MQTT telemetry, and the embedded WebUI + OTA server (http://basil-water.local/).
 
 #include <Arduino.h>
 #include <WiFi.h>

@@ -1,7 +1,4 @@
-// config.h
-// Purpose: Configuration for SD + HTTP server training data collection.
-// OWNER:   Caleb
-// Node:    Freenove ESP32-WROVER CAM
+// Pin assignments and capture interval settings for SD + HTTP training data collection.
 
 #pragma once
 

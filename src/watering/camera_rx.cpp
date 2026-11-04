@@ -1,9 +1,5 @@
-// camera_rx.cpp
-// Purpose: Local Wi-Fi HTTP receiver for PlantHealthMsg and 320x240 JPEGs from the camera node
-//          (POST /health), 2-image ring buffer (latest + previous), UDP discovery responder,
-//          and remote HTTP capture trigger.
-// OWNER:   Caleb
-// Node:    watering node (ESP32 DevKitC)
+// Local Wi-Fi HTTP receiver for PlantHealthMsg and 320x240 JPEGs from the camera node
+// (POST /health), managing a 2-slot preview ring buffer and UDP discovery responder.
 
 #include <Arduino.h>
 #include <WiFi.h>

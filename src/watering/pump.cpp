@@ -1,7 +1,4 @@
-// pump.cpp
-// Purpose: Non-blocking (millis-based) peristaltic pump driver with mL dosing support.
-// OWNER:   Caleb
-// Node:    watering node (ESP32 DevKitC)
+// Non-blocking (millis-based) peristaltic pump driver with calibrated mL dosing.
 
 #include <Arduino.h>
 #include "pump.h"

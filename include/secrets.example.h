@@ -1,10 +1,7 @@
-// secrets.example.h
-// Purpose: Template for secrets.h. Copy to include/secrets.h (git-ignored) and fill in.
-// OWNER:   Caleb
-// Node:    camera node + watering node (one secrets.h shared by both envs)
+// Template for include/secrets.h (git-ignored). Copy to include/secrets.h and fill in credentials.
 
 #pragma once
-#define WIFI_SSID     "your-ssid"   // camera node only uses this to find the router channel
+#define WIFI_SSID     "your-ssid"
 #define WIFI_PASS     "your-password"
 #define MQTT_HOST     "broker.emqx.io"
 #define MQTT_PORT     1883

@@ -1,7 +1,4 @@
-// camera.h
-// Purpose: Camera sensor init and frame capture via esp_camera.
-// OWNER:   Caleb
-// Node:    camera node (Freenove ESP32-WROVER CAM)
+// Camera sensor initialisation and frame capture wrapper around esp_camera.
 
 #pragma once
 #include "esp_camera.h"

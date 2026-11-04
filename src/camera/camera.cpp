@@ -1,8 +1,5 @@
-// camera.cpp
-// Purpose: Camera sensor init and frame capture via esp_camera with automatic re-init recovery
-//          on capture failure (handles shared 5V rail power-up and voltage dips).
-// OWNER:   Caleb
-// Node:    camera node (Freenove ESP32-WROVER CAM)
+// Camera sensor initialisation and frame capture via esp_camera, with automatic
+// re-init recovery if a shared-5V rail dip wedges the DVP frame grabber.
 
 #include <Arduino.h>
 #include "camera.h"

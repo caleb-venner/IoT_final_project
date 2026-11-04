@@ -1,7 +1,4 @@
-// inference.h
-// Purpose: On-device plant health classifier interface (healthy / wilted).
-// OWNER:   Caleb
-// Node:    camera node (Freenove ESP32-WROVER CAM)
+// On-device plant health classifier interface (healthy vs wilted).
 
 #pragma once
 #include <stdint.h>

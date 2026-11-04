@@ -1,9 +1,5 @@
-// http_tx.h
-// Purpose: Local Wi-Fi HTTP transmitter & UDP discovery client (camera node -> watering node).
-//          Connects to Wi-Fi, discovers the watering node via UDP broadcast or mDNS, and POSTs
-//          inference results + full 320x240 JPEG previews to http://basil-water.local/health.
-// OWNER:   Caleb
-// Node:    camera node (Freenove ESP32-WROVER CAM)
+// Local Wi-Fi HTTP client and UDP discovery interface for sending inference results
+// and 320x240 JPEG frames from the camera node to the watering node (POST /health).
 
 #pragma once
 #include <Arduino.h>
